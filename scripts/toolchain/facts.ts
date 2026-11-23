@@ -1,8 +1,3 @@
-/**
- * Gathers what each tool actually resolves, rather than what the config files say they should.
- * The invariants in `invariants.ts` compare these facts.
- */
-
 const CODE_EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"] as const;
 
 type CommandResult = {
@@ -37,7 +32,7 @@ export type ToolchainFacts = {
 };
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 export const isString = (value: unknown): value is string => typeof value === "string";
 
@@ -160,7 +155,10 @@ const readPackageScripts = async (): Promise<Readonly<Record<string, string>>> =
 const readBunfig = async (): Promise<Readonly<Record<string, unknown>>> => {
   const text = await Bun.file("bunfig.toml").text();
   const parsed: unknown = Bun.TOML.parse(text);
-  return isRecord(parsed) ? parsed : {};
+  if (!isRecord(parsed)) {
+    throw new Error("bunfig.toml did not parse to a table");
+  }
+  return parsed;
 };
 
 const DIAGNOSTIC = /^.*\(\d+,\d+\): error TS\d+: /;

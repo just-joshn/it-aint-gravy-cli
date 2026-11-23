@@ -1,17 +1,22 @@
-/**
- * Every rule here states one way the three tools must agree. A violation means the tools
- * disagree about the same file, the same syntax, or the same output.
- */
-
 import type { ToolchainFacts } from "./facts.ts";
 import { isRecord } from "./facts.ts";
 
+export const INVARIANTS = [
+  "code-file-parity",
+  "type-verdict-parity",
+  "single-formatter",
+  "strictness-parity",
+  "ignore-parity",
+] as const;
+
+export type Invariant = (typeof INVARIANTS)[number];
+
 export type Violation = {
-  readonly invariant: string;
+  readonly invariant: Invariant;
   readonly detail: string;
 };
 
-const violation = (invariant: string, detail: string): Violation => ({ invariant, detail });
+const violation = (invariant: Invariant, detail: string): Violation => ({ invariant, detail });
 
 const readOption = (options: Readonly<Record<string, unknown>>, key: string): boolean =>
   options[key] === true;
@@ -48,7 +53,6 @@ const missing = (
   return violations;
 };
 
-/** Both tools must resolve the same set of code files from their own configuration. */
 const codeFileParity = (facts: ToolchainFacts): readonly Violation[] => {
   const typescript = new Set(facts.typescriptFiles);
   const biome = new Set(facts.biomeFiles);
@@ -57,7 +61,6 @@ const codeFileParity = (facts: ToolchainFacts): readonly Violation[] => {
   );
 };
 
-/** `bun check` must report exactly the diagnostics `tsc` reports, and fail on the same tree. */
 const typeVerdictParity = (facts: ToolchainFacts): readonly Violation[] => {
   const { tsc, bun, tscFailed, bunFailed } = facts.typeDiagnostics;
   const violations: Violation[] = [];
@@ -88,7 +91,6 @@ const typeVerdictParity = (facts: ToolchainFacts): readonly Violation[] => {
 
 const SECOND_FORMATTER = /\b(prettier|eslint|oxlint|dprint)\b|bun fmt|deno fmt/;
 
-/** Exactly one formatter may be wired up. */
 const singleFormatter = (facts: ToolchainFacts): readonly Violation[] => {
   const violations: Violation[] = [];
 
@@ -116,10 +118,6 @@ const singleFormatter = (facts: ToolchainFacts): readonly Violation[] => {
 const ruleDisagreement = (group: string, rule: string, reason: string): Violation =>
   violation("strictness-parity", `${group}/${rule} must be on because ${reason}`);
 
-/**
- * No tsconfig option may be contradicted by an enabled Biome rule, and no syntax TypeScript
- * rejects may be accepted by the linter.
- */
 const strictnessParity = (facts: ToolchainFacts): readonly Violation[] => {
   const options = facts.typescriptOptions;
   const config = facts.biomeConfig;
@@ -201,7 +199,6 @@ const forceIgnoredDirectories = (
   return new Set(directories);
 };
 
-/** Build output must be excluded from both tools, and Biome must honour .gitignore. */
 const ignoreParity = (facts: ToolchainFacts): readonly Violation[] => {
   const violations: Violation[] = [];
   const biomeIgnores = forceIgnoredDirectories(facts.biomeConfig);

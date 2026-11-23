@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { ToolchainFacts } from "../scripts/toolchain/facts.ts";
+import { isRecord } from "../scripts/toolchain/facts.ts";
 import { findViolations } from "../scripts/toolchain/invariants.ts";
 
 type Patch = {
@@ -14,10 +15,6 @@ type Patch = {
   readonly typeDiagnostics?: ToolchainFacts["typeDiagnostics"];
 };
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-/** Recursive merge so a patch can flip one nested option without rebuilding the fixture. */
 const merge = (
   base: Readonly<Record<string, unknown>>,
   patch: Readonly<Record<string, unknown>>,

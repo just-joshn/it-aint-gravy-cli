@@ -1,67 +1,63 @@
 # Coding Style Rules
 
-## Immutability (CRITICAL)
+## Immutability
 
-ALWAYS create new objects, NEVER mutate:
+Create new objects instead of mutating:
 
-```javascript
-// WRONG: Mutation
-function updateUser(user, name) {
-  user.name = name  // MUTATION!
-  return user
+```typescript
+// Wrong: mutation
+function updateUser(user: User, name: string): User {
+  user.name = name;
+  return user;
 }
 
-// CORRECT: Immutability
-function updateUser(user, name) {
-  return { ...user, name }
+// Right: a new object
+function updateUser(user: User, name: string): User {
+  return { ...user, name };
 }
 ```
 
+Local mutation is fine while building a value inside one function. Shared state is not.
+
 ## File Organization
 
-MANY SMALL FILES > FEW LARGE FILES:
+Many small files beat a few large ones:
+
 - High cohesion, low coupling
-- 200-400 lines typical, 800 max
-- Extract utilities from large components
-- Organize by feature/domain, not by type
+- 200 to 400 lines typical, 800 maximum
+- Extract a utility when a second caller appears
+- Organize by feature, not by type
 
 ## Error Handling
 
-ALWAYS handle errors comprehensively:
+Throw at the boundary where the failure happens and include the context needed to act on it. Do not
+catch an error you cannot handle, and do not log and rethrow the same error.
 
 ```typescript
-try {
-  const result = await riskyOperation()
-  return result
-} catch (error) {
-  console.error('Operation failed:', error)
-  throw new Error('User-friendly error message')
+if (result.exitCode !== 0) {
+  throw new Error(`${result.command} exited ${result.exitCode}\n${result.stderr || result.stdout}`);
 }
 ```
 
 ## Input Validation
 
-ALWAYS validate user input:
+Validate untrusted input once, at the boundary, and return a typed value. The repository has no
+validation library, so use a type guard.
 
 ```typescript
-import { z } from 'zod'
-
-const schema = z.object({
-  email: z.string().email(),
-  age: z.number().int().min(0).max(150)
-})
-
-const validated = schema.parse(input)
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 ```
 
 ## Code Quality Checklist
 
 Before marking work complete:
-- [ ] Code is readable and well-named
+
+- [ ] Code is readable and well named
 - [ ] Functions are small (<50 lines)
 - [ ] Files are focused (<800 lines)
 - [ ] No deep nesting (>4 levels)
-- [ ] Proper error handling
-- [ ] No console.log statements
-- [ ] No hardcoded values
-- [ ] Immutable patterns used
+- [ ] Errors carry context
+- [ ] No `console.log` outside the CLI boundary
+- [ ] No hardcoded secrets or machine-specific paths
+- [ ] Immutable patterns used for shared state
