@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    // Bun runs TypeScript directly, so the compiler never emits.
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+
+    // TypeScript 6+ defaults `types` to an empty array, so Bun's globals are opt-in.
+    "types": ["bun"],
+
+    // Every file Biome lints as code is also type-checked.
+    "allowJs": true,
+    "checkJs": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    // Bun strips types instead of transforming them, so only erasable syntax is allowed.
+    // Biome mirrors this with style/noEnum, noNamespace, and noParameterProperties.
+    "erasableSyntaxOnly": true,
+
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true
+
+    // Unused locals and parameters are Biome's job (noUnusedVariables,
+    // noUnusedFunctionParameters), so `noUnusedLocals` stays off to avoid double reporting.
+  },
+  "include": ["src", "scripts", "test"],
+  "exclude": ["dist", "coverage"]
+}

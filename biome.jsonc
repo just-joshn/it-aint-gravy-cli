@@ -1,0 +1,129 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
+
+  // Git is the single ignore authority: .gitignore already covers node_modules, dist, coverage,
+  // and env files. Biome fails fast when vcs.useIgnoreFile is on and no ignore file exists.
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+
+  // `!!` keeps build output out of the project index that type-aware rules build.
+  // Keep the dist/coverage entries identical to tsconfig.json `exclude`.
+  // Prose stays untouched: the rule documents are hand-formatted, and TypeScript ignores them too.
+  "files": {
+    "includes": ["**", "!!dist", "!!coverage", "!!**/*.md"],
+    "ignoreUnknown": true
+  },
+
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+
+  "linter": {
+    "enabled": true,
+
+    // `types` runs the rules that need real type information, resolved from the same sources
+    // TypeScript reads. `test` covers bun:test.
+    "domains": {
+      "types": "recommended",
+      "test": "recommended"
+    },
+
+    "rules": {
+      "preset": "recommended",
+
+      // Mirror of tsconfig `erasableSyntaxOnly`, plus the file-size and function-size limits
+      // from .agents/rules/coding-style.md.
+      "style": {
+        "noEnum": "error",
+        "noNamespace": "error",
+        "noParameterProperties": "error",
+        "noExcessiveLinesPerFile": {
+          "level": "error",
+          "options": { "maxLines": 800 }
+        },
+
+        // Mirror of tsconfig `verbatimModuleSyntax`: type-only imports must say so.
+        "useImportType": "error",
+        "useExportType": "error"
+      },
+
+      "complexity": {
+        "noExcessiveLinesPerFunction": {
+          "level": "error",
+          "options": { "maxLines": 50 }
+        }
+      },
+
+      // `console` is banned in library code by .agents/rules/coding-style.md. The CLI boundary
+      // turns it back on in the overrides below.
+      "suspicious": {
+        "noConsole": "error",
+        "noExplicitAny": "error"
+      },
+
+      // .agents/rules/security.md: no hardcoded secrets. Pattern matching stays on; the entropy
+      // cut-off is raised because camelCase option names score like random strings.
+      "security": {
+        "noSecrets": {
+          "level": "error",
+          "options": { "entropyThreshold": 60 }
+        }
+      }
+    }
+  },
+
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+
+  "overrides": [
+    {
+      // The executable and the developer scripts are the program's stdout boundary.
+      "includes": ["src/index.ts", "scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      // A `describe` block groups cases instead of holding a runnable function body, and test
+      // suites grow past the production limit. Keep a bound, just a test-shaped one.
+      "includes": ["test/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": {
+              "level": "error",
+              "options": { "maxLines": 150 }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

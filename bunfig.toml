@@ -1,0 +1,14 @@
+# Bun owns the runtime, the package manager, and the test runner.
+# Biome owns formatting and linting; `bun fmt` is deliberately not used, because a second
+# formatter would drift from biome.jsonc.
+
+[install]
+# bun.lock is the only version authority: `bun add` writes exact versions.
+exact = true
+
+[test]
+# .agents/rules/testing.md requires at least 80% coverage.
+coverageReporter = ["text", "lcov"]
+coverageDir = "./coverage"
+coverageThreshold = { lines = 0.8, functions = 0.8 }
+coverageSkipTestFiles = true

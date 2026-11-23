@@ -1,0 +1,28 @@
+{
+  "name": "it-aint-gravy",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "it-aint-gravy": "./src/index.ts"
+  },
+  "engines": {
+    "bun": ">=1.4.5"
+  },
+  "packageManager": "bun@1.4.5",
+  "scripts": {
+    "check": "bun run check:biome && bun run check:types && bun run test",
+    "check:biome": "biome check --error-on-warnings .",
+    "check:types": "bun check --no-script",
+    "fix": "biome check --write .",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "verify": "bun run scripts/verify-toolchain.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.8",
+    "@types/bun": "1.4.5",
+    "typescript": "7.0.2"
+  }
+}
